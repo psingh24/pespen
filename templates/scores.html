@@ -1,0 +1,71 @@
+{% extends 'layouts.html' %}
+{% block content %}
+{% for score in scores %}
+<div class="scoreboard">
+        <div class="team team-a houston">
+           <div class="team-logo">
+              <img src="https://cdn.bleacherreport.net/images/team_logos/328x328/houston_rockets.png" width="50px" height="50px"/>
+           </div>
+           <div class="team-detail">
+              <div class="team-nameandscore">
+                 <div class="team-name">
+                    {{ score.away_abbr }} 
+                 </div>
+                 <div class="team-score">
+                    {{ score.away_score }} 
+                 </div>
+              </div>
+              <div class="team-thisgame">
+                 <div class="team-times">
+                    TO: 6
+                 </div>
+                 <div class="team-bonus">
+                    BONUS
+                 </div>
+              </div>
+           </div>
+        </div>
+        <div class="team team-b dallas">
+           <div class="team-logo">
+              <img src="http://i.cdn.turner.com/nba/nba/.element/img/1.0/teamsites/logos/teamlogos_500x500/dal.png" width="50px" height="50px"/>
+           </div>
+           <div class="team-detail">
+              <div class="team-nameandscore">
+                 <div class="team-name">
+                    {{ score.home_abbr }} 
+                 </div>
+                 <div class="team-score">
+                        {{ score.home_score }} 
+                 </div>
+              </div>
+              <div class="team-thisgame">
+                 <div class="team-times">
+                    TO: 4
+                 </div>
+                 <div class="team-bonus">
+                    BONUS
+                 </div>
+              </div>
+           </div>
+        </div>
+        <div class="timer">
+           <div class="timer-container">
+               <div class="quarter">
+                   3rd
+               </div>
+               <div class="timeleft">
+                   11:45
+               </div>
+               <div class="shotclock">
+                   24
+               </div>
+           </div> 
+        </div>
+        <div class="logo">
+           <img src="http://a.espncdn.com/promotions/bsa/apps/instantaccess/images/espn_logo.png"/>
+        </div>
+     </div>
+     
+     <hr/>
+{% endfor %}
+{% endblock content %}
