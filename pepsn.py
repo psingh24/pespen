@@ -1,4 +1,6 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, flash, redirect
+form flask_sqlalchmey = SQLAlchemy
+from forms import RegistrationForm, LoginForm
 from datetime import datetime
 # Has one day old scores and sports info. nfl, bball
 from sportsreference.nba.boxscore import Boxscores
@@ -27,6 +29,42 @@ combined_tweets = ShamsCharania + wojespn + nba
 np.random.shuffle(combined_tweets)
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHMEY_DATABASE_URI'] = 'sqlite:///site.db'
+
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=true)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    image = db.Column(db.String(20), nullable=False, default='default.jpg')
+    password = db.Column(db.String(60), nullable=Flase)
+    posts = db.relationship('Post', backref='author', lazy=True)
+    # What is printed
+    def __repr__(self): 
+        return f"User('{self.username}, {self.email}, {self.image}')"
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=true)
+    user_id = db.Column(db.Integer, ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    data_posted = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
+    content = db.Column(db.Text, nullable=False)
+    comments = db.relationship('Comments', backref='commenter', lazy=True)
+    # What is printed
+    def __repr__(self): 
+        return f"Post('{self.title}, {self.data_posted}, {self.content}')"
+
+class Comments(db.Comments):
+    id = db.Column(db.Integer, primary_key=true)
+    post_id = db.Column(db.Integer, ForeignKey('post.id'), nullable=False)
+    data_posted = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
+    content = db.Column(db.Text, nullable=False)
+    # What is printed
+    def __repr__(self): 
+        return f"Comments('{self.content}, {self.data_posted}')"
+
 
 posts = [
     {
@@ -53,13 +91,24 @@ def scores():
     return render_template('scores.html', scores=games.games['4-20-2019'])
 
 
-@app.route("/login")
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    return render_template('login.html', title='Login')
+    form = LoginForm()
+    if form.validate_on_submit():
+        if form.email.data == 'test@test.com' and form.password.data == 'test':
+            flash(f'You have logged in', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash(f'Login Unsuccessful, Please check Email and Password.', 'danger')
+    return render_template('login.html', title='Login', form=form)
 
-@app.route("/register")
+@app.route("/register", methods=['GET', 'POST'])
 def register():
-    return render_template('register.html', title='Register')
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        flash(f'Account created for {form.username.data}!', 'success')
+        return redirect(url_for('home'))
+    return render_template('register.html', title='Register', form=form)
 
 @app.route("/picks")
 def picks():
