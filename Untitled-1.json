@@ -1,0 +1,108 @@
+{
+    "date": "2019-05-03",
+    "league": {
+        "id": "4353138d-4c22-4396-95d8-5f587d2df25c",
+        "name": "NBA",
+        "alias": "NBA"
+    },
+    "games": [
+        {
+            "id": "e3022290-2c7b-42ab-8b6e-877852d888e6",
+            "status": "closed",
+            "title": "Game 3",
+            "coverage": "full",
+            "scheduled": "2019-05-04T00:00:00+00:00",
+            "home_points": 116,
+            "away_points": 123,
+            "track_on_court": true,
+            "sr_id": "sr:match:18061207",
+            "reference": "0041800203",
+            "time_zones": {
+                "venue": "US/Eastern",
+                "home": "US/Eastern",
+                "away": "US/Central"
+            },
+            "venue": {
+                "id": "7d69b080-91ca-53c9-9302-45c1a72c5549",
+                "name": "TD Garden",
+                "capacity": 18624,
+                "address": "100 Legends Way",
+                "city": "Boston",
+                "state": "MA",
+                "zip": "02114",
+                "country": "USA",
+                "sr_id": "sr:venue:5940"
+            },
+            "broadcasts": [
+                {
+                    "network": "ESPN",
+                    "type": "TV",
+                    "locale": "National",
+                    "channel": "206"
+                }
+            ],
+            "home": {
+                "name": "Boston Celtics",
+                "alias": "BOS",
+                "id": "583eccfa-fb46-11e1-82cb-f4ce4684ea4c",
+                "sr_id": "sr:team:3422",
+                "reference": "1610612738"
+            },
+            "away": {
+                "name": "Milwaukee Bucks",
+                "alias": "MIL",
+                "id": "583ecefd-fb46-11e1-82cb-f4ce4684ea4c",
+                "sr_id": "sr:team:3410",
+                "reference": "1610612749"
+            }
+        },
+        {
+            "id": "f017f946-4a1e-4fa2-b538-b864c7a1eeb2",
+            "status": "inprogress",
+            "title": "Game 3",
+            "coverage": "full",
+            "scheduled": "2019-05-04T02:30:00+00:00",
+            "track_on_court": true,
+            "sr_id": "sr:match:18086741",
+            "reference": "0041800233",
+            "time_zones": {
+                "venue": "US/Pacific",
+                "home": "US/Pacific",
+                "away": "US/Mountain"
+            },
+            "venue": {
+                "id": "1d1f74a2-7b35-56f0-8cbd-552c51cb2c14",
+                "name": "Moda Center",
+                "capacity": 19393,
+                "address": "1 Center Court",
+                "city": "Portland",
+                "state": "OR",
+                "zip": "97227",
+                "country": "USA",
+                "sr_id": "sr:venue:6940"
+            },
+            "broadcasts": [
+                {
+                    "network": "ESPN",
+                    "type": "TV",
+                    "locale": "National",
+                    "channel": "206"
+                }
+            ],
+            "home": {
+                "name": "Portland Trail Blazers",
+                "alias": "POR",
+                "id": "583ed056-fb46-11e1-82cb-f4ce4684ea4c",
+                "sr_id": "sr:team:3414",
+                "reference": "1610612757"
+            },
+            "away": {
+                "name": "Denver Nuggets",
+                "alias": "DEN",
+                "id": "583ed102-fb46-11e1-82cb-f4ce4684ea4c",
+                "sr_id": "sr:team:3417",
+                "reference": "1610612743"
+            }
+        }
+    ]
+}

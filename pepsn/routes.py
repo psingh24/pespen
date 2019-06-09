@@ -1,8 +1,10 @@
-from flask import Flask, render_template, url_for, flash, redirect
-form flask_sqlalchmey = SQLAlchemy
-from forms import RegistrationForm, LoginForm
+from flask import render_template, url_for, flash, redirect
+from pepsn import app
+from pepsn.forms import RegistrationForm, LoginForm
+from pepsn.models import User, Post, Comments, Bets, Picks
 from datetime import datetime
-# Has one day old scores and sports info. nfl, bball
+
+# Need to move this stuff to another file#################################
 from sportsreference.nba.boxscore import Boxscores
 import twitter
 import numpy as np
@@ -19,7 +21,6 @@ api = twitter.Api(consumer_key=os.getenv("TWITTER_CONSUMER_KEY"),
                   consumer_secret=os.getenv("TWITTER_CONSUMER_SECRET"),
                   access_token_key=os.getenv("TWITTER_ACCESS_TOKEN_KEY"),
                   access_token_secret=os.getenv("TWITTER_ACCESS_TOKEN_SECRET"))
-
 # twitter calls
 ShamsCharania = api.GetUserTimeline(screen_name="ShamsCharania", count=5)
 wojespn = api.GetUserTimeline(screen_name="wojespn", count=5)
@@ -27,43 +28,7 @@ nba = api.GetUserTimeline(screen_name="NBA", count=5)
 combined_tweets = ShamsCharania + wojespn + nba
 # shuffle tweets
 np.random.shuffle(combined_tweets)
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHMEY_DATABASE_URI'] = 'sqlite:///site.db'
-
-db = SQLAlchemy(app)
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=true)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    image = db.Column(db.String(20), nullable=False, default='default.jpg')
-    password = db.Column(db.String(60), nullable=Flase)
-    posts = db.relationship('Post', backref='author', lazy=True)
-    # What is printed
-    def __repr__(self): 
-        return f"User('{self.username}, {self.email}, {self.image}')"
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=true)
-    user_id = db.Column(db.Integer, ForeignKey('user.id'), nullable=False)
-    title = db.Column(db.String(100), nullable=False)
-    data_posted = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
-    content = db.Column(db.Text, nullable=False)
-    comments = db.relationship('Comments', backref='commenter', lazy=True)
-    # What is printed
-    def __repr__(self): 
-        return f"Post('{self.title}, {self.data_posted}, {self.content}')"
-
-class Comments(db.Comments):
-    id = db.Column(db.Integer, primary_key=true)
-    post_id = db.Column(db.Integer, ForeignKey('post.id'), nullable=False)
-    data_posted = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow())
-    content = db.Column(db.Text, nullable=False)
-    # What is printed
-    def __repr__(self): 
-        return f"Comments('{self.content}, {self.data_posted}')"
+# Need to move this stuff to another file#################################
 
 
 posts = [
@@ -80,6 +45,7 @@ posts = [
     'date': "04/22/2019"
     }
 ]
+
 
 @app.route("/")
 @app.route("/home")
@@ -125,6 +91,3 @@ def about():
 @app.route("/discussion")
 def discussion():
     return render_template('discussion.html', title='Discussion', posts=posts)
-
-if __name__ == '__main__':
-    app.run(debug=True)
