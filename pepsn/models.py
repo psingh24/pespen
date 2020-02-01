@@ -55,8 +55,8 @@ class Bets(db.Model):
 class Picks(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    data_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    data_posted = db.Column(db.Text)
     content = db.Column(db.Text)
     # What is printed
     def __repr__(self): 
-        return f"User('{self.user_id}, {self.data_posted}, {self.content}')"
+        return f"('{self.user_id}, {self.data_posted}, {self.content}')"

@@ -309,10 +309,19 @@ table .col{
   transform: rotate(45deg);
 }
 
-.answer-container {
+/* .answer-container {
   margin: auto;
-  width: 65%;
-}
-.secondchoice {
+  width: 95%;
+} */
+/* .secondchoice {
   margin-left: 15px;
+} */
+
+.inputFieldPoints {
+  width: 40px;
+  border: solid;
+}
+
+#myModal {
+  margin-top: 30%
 }

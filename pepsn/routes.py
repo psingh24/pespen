@@ -3,37 +3,79 @@ import secrets
 from PIL import Image
 from flask import render_template, url_for, flash, redirect, request
 from pepsn import app, db, bcrypt
-from pepsn.forms import RegistrationForm, LoginForm, UpdateAccountForm
+from pepsn.forms import RegistrationForm, LoginForm, UpdateAccountForm, PicksForToday
 from pepsn.models import User, Post, Comments, Bets, Picks
 from flask_login import login_user, current_user, logout_user, login_required
-from datetime import datetime
-
-# import http.client
-
-# conn = http.client.HTTPSConnection("api.sportradar.us")
-
-# conn.request("GET", "/nba/trial/v5/en/games/2019/REG/schedule.json?api_key=3tqauj3fcs5bn5sn2ajaafth")
-
-# res = conn.getresponse()
-# data = res.read()
-
-# print(data.decode("utf-8"))
+from datetime import date, timezone, timedelta
+import datetime
+import json
+from pytz import timezone
+import pytz
 
 
+# #Load in schedule
+with open('/Users/prabhdeepsingh/Personal/PEPSNPY/pepsn/schedule.json') as json_file:
+    schedule = json.load(json_file)
+local_tz = pytz.timezone('US/Central')
+# dates =[]
+# for idx,item in enumerate(schedule["games"]):
+#     time = datetime.datetime.strptime(item["schedule"],'%Y-%m-%dT%H:%M:%S')
+#     gameTimes = local_tz.normalize(time.replace(tzinfo=pytz.utc).astimezone(local_tz)).strftime("%x %I:%M:%S %p")
+#     dates.append((idx, gameTimes))
+    
+# print(dates)
+
+#get game times in human readable format in cst
+local_tz = pytz.timezone('US/Central')
+#Todays Time and Date formated year time(12hour pm/am)
+today = datetime.datetime.now()
+todayFormated = today.strftime("%x %I:%M:%S %p")
+todaysDate = today.strftime("%x")
+
+# # for games in schedule["games"]:
+# #     time = datetime.datetime.strptime(games["schedule"],'%Y-%m-%dT%H:%M:%S')
+# #     gameTimes = local_tz.normalize(time.replace(tzinfo=pytz.utc).astimezone(local_tz)).strftime("%x %I:%M:%S %p")
+
+oneHourBeforeFirstGame = ''   
+def getTodaysGames(today):
+    todaysGames = {"games": []}
+    for games in schedule["games"]:
+        time = datetime.datetime.strptime(games["schedule"],'%Y-%m-%dT%H:%M:%S')
+        gameTimesForCompare = local_tz.normalize(time.replace(tzinfo=pytz.utc).astimezone(local_tz)).date()
+        if (gameTimesForCompare == today.date()):
+            todaysGames["games"].append(games)
+    firstGameOfTheDay = datetime.datetime.strptime(todaysGames["games"][0]["schedule"],'%Y-%m-%dT%H:%M:%S')
+    firstGameOfTheDayFormatted = local_tz.normalize(firstGameOfTheDay.replace(tzinfo=pytz.utc).astimezone(local_tz))
+    oneHourBeforeFirstGame = firstGameOfTheDayFormatted - timedelta(hours=0, minutes=10)
+    todaysGames["pickCutOffTime"] = oneHourBeforeFirstGame.strftime("%I:%M %p")
+        
+    return todaysGames
+# # import http.client
+
+# # conn = http.client.HTTPSConnection("api.sportradar.us")
+
+# # conn.request("GET", "/nba/trial/v5/en/games/2019/REG/schedule.json?api_key=3tqauj3fcs5bn5sn2ajaafth")
+
+# # res = conn.getresponse()
+# # data = res.read()
+
+# # print(data.decode("utf-8"))
 
 
-# # Need to move this stuff to another file#################################
-from sportsreference.nba.boxscore import Boxscores
+
+
+# # # Need to move this stuff to another file#################################
+# from sportsreference.nba.boxscore import Boxscores
 import twitter
 import numpy as np
-# # env file
+# # # env file
 from dotenv import load_dotenv
 load_dotenv()
 
-# nba box score for yesterday
-games = Boxscores(datetime(2020, 1, 14))
-# print(games)
-# print(games.games)
+# # nba box score for yesterday
+# games = Boxscores(datetime(2020, 1, 14))
+# # print(games)
+# # print(games.games)
 api = twitter.Api(consumer_key=os.getenv("TWITTER_CONSUMER_KEY"),
                   consumer_secret=os.getenv("TWITTER_CONSUMER_SECRET"),
                   access_token_key=os.getenv("TWITTER_ACCESS_TOKEN_KEY"),
@@ -45,7 +87,7 @@ nba = api.GetUserTimeline(screen_name="NBA", count=5)
 combined_tweets = ShamsCharania + wojespn + nba
 # # shuffle tweets
 np.random.shuffle(combined_tweets)
-# # Need to move this stuff to another file#################################
+# Need to move this stuff to another file#################################
 
 
 posts = [
@@ -140,18 +182,62 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
+gamesForToday = getTodaysGames(today)
 
-date = "01-10-2019"
-gamess = [{"Home": "LAL", "Away": "BOS", "GameNumber": 1}, {"Home": "TOR", "Away": "SAS", "GameNumber": 2}, {"Home": "DAL", "Away": "POR", "GameNumber": 3}, {"Home": "ATL", "Away": "NYK", "GameNumber": 4}]
-
-@app.route("/picks")
+@app.route("/picks", methods=['GET', 'POST'])
 def picks():
-    return render_template('picks.html', title='Picks', gamess=gamess, date=date)
+    form = PicksForToday()
+    todaysPicks = ""
+    userPicks = Picks.query.filter_by(user_id=current_user.id, data_posted=todaysDate)
+    if (request.method == "POST"):
+        if current_user.is_authenticated:
+            # save picks into a dict
+            data = request.form.to_dict(flat=False)
+            pointsBy = data['pointsBy']
+            teams = []
+            # delete uncessary data
+            del data['csrf_token']
+            del data['submit']
+            del data['pointsBy']
+
+            for key in data:
+                teams.append(key)
+            # create a list of tuples (team, pointWinBy)
+            dataToSaveInDatabase = list(zip(teams, pointsBy))
+
+            todaysCutOffTime = todaysDate + " " + gamesForToday["pickCutOffTime"]
+            # if now is 10 mins before first game
+            if (datetime.datetime.strptime(todaysCutOffTime,'%m/%d/%y %H:%M %p') > today):
+                # if picks havent been made for today
+                if not bool(current_user.picks):
+                    print("No picks")
+                    picks = Picks(user_id=current_user.id, content=str(dataToSaveInDatabase).strip('[]'), data_posted=todaysDate)
+                    db.session.add(picks)
+                    db.session.commit()
+                else:
+                    print("Picks have been made but we want to overwrite")
+                    print("The current Picks: ")
+                    print(dataToSaveInDatabase)
+                    Picks.query.filter_by(user_id=current_user.id, data_posted=todaysDate).delete()
+                    picks = Picks(user_id=current_user.id, content=str(dataToSaveInDatabase).strip('[]'), data_posted=todaysDate)
+                    db.session.add(picks)
+                    db.session.commit()
+            else:
+                flash(f'You have missed the deadline to make picks for today. Picks cut off 10 mins before first game.', 'danger')
+            todaysPicks = current_user.picks
+        else:
+            flash(f'Please Login to Submit Picks', 'danger')
+    else:
+        if current_user.is_authenticated:
+            todaysPicks = userPicks.all()
+    if bool(userPicks.all()):
+        flash(f'You already have made picks for today, Submitting new pick will override the original.', 'info')
+    return render_template('picks.html', title='Picks', gamess=gamesForToday, date=todaysDate, form=form, userLoggedIn=current_user.is_authenticated, todaysPicks=todaysPicks)
 
 @app.route("/standings")
 def standings():
     users = User.query.all()
-    print(users)
+    # print(users)
     return render_template('standings.html', title='Standings', users=users)
 
 @app.route("/about")

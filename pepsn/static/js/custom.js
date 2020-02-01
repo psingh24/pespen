@@ -7,7 +7,8 @@ $(document).ready(function() {
         if ($box.is(":checked")) {
           // the name of the box is retrieved using the .attr() method
           // as it is assumed and expected to be immutable
-          var group = "input:checkbox[name='" + $box.attr("name") + "']";
+          var group = "input:checkbox[id='" + $box.attr("id") + "']";
+          console.log(group)
           // the checked state of the group/box on the other hand will change
           // and the current value is retrieved using .prop() method
           $(group).prop("checked", false);
@@ -16,4 +17,28 @@ $(document).ready(function() {
           $box.prop("checked", false);
         }
       });
+
+      
+        // $('#confirmModal').click(function() {
+        //   event.preventDefault();
+        //   jQuery.noConflict();
+        //   $('#myModal').modal('toggle');
+        // });
+
+        // $("#overWritePicks").click(function() {
+        //   jQuery.noConflict();
+        //   $('#myModal').modal('toggle');
+
+        //   console.log($("#picksForm").serialize())
+
+        //   // $.post(url, data=$('#picksForm').serialize(), function(data) {
+        //   //   if (data.status == 'ok') {
+        //   //     $('#stepDialog').modal('hide');
+        //   //     location.reload();
+        //   //   }
+        //   //   else {
+        //   //     $('#stepDialog .modal-content').html(data);
+        //   //   }
+        //   // });
+        // })
 });

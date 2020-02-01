@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from pepsn.models import User
 from flask_login import current_user
@@ -46,3 +46,11 @@ class UpdateAccountForm(FlaskForm):
             user = User.query.filter_by(email=email.data).first()
             if user:
                 raise ValidationError('Email you entered already exists, please choose another email.')
+
+class PicksForToday(FlaskForm):
+    points = SelectField('Win By',choices=[(x, x) for x in range(1, 101)])
+    submit = SubmitField('Submit')
+
+    def validate_picks(self):
+        print("Validation")
+     

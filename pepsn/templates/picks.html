@@ -2,25 +2,83 @@
 {% block content %}
 <div class="content-section">
   <legend class="border-bottom mb-4">Picks for {{date}}</legend>
-  <form action="" method="POST">
-    {% for game in gamess %}
+  <b>Picks need to be made by: {{ gamess.pickCutOffTime }}</b>
+  <form id="picksForm" action="" method="POST">
+    {{ form.hidden_tag() }}
+    {% for game in gamess.games %}
     <div class="answer-container">
-      <label class="inputcontainer">{{ game.Home }}
-        <input name="team-{{ game.GameNumber }}" id="{{ game.Home }}" type="checkbox" name="radio" >
-        <span class="checkmark"></span>
-      </label>
-
-      <label class="inputcontainer secondchoice">{{ game.Away }}
-        <input name="team-{{ game.GameNumber }}" id="{{ game.Away }}" type="checkbox" name="radio" >
-        <span class="checkmark"></span>
-      </label>
+      <div class="row">
+        <div class="col-3">
+          <label class="inputcontainer">{{ game.home.alias }}
+            <input name="{{ game.home.alias }}" id="{{ game.home.id }}" type="checkbox" name="radio">
+            <span class="checkmark"></span>
+          </label>
+        </div>
+        <div class="col-4">
+          <label class="inputcontainer secondchoice">{{ game.away.alias }}
+            <input name="{{ game.away.alias }}" id="{{ game.home.id }}" type="checkbox" name="radio">
+            <span class="checkmark"></span>
+          </label>
+        </div>
+        <div class="col-5">
+          <b>By:
+            <select name="pointsBy">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+            </select>
+          </b>
+        </div>
+      </div>
     </div>
     {% endfor %}
-  <div class="row form-group">
-    <div class="col-4 offset-4">
-        <button class="btn btn-outline-info">Submit</button>
+    <div class="row form-group">
+      <div class="col-4 offset-4">
+        <div class="form-group">
+          {{ form.submit(class="btn btn-outline-info",id="confirmModal") }}
+        </div>
+      </div>
     </div>
+  </form>
+  {% if userLoggedIn %}
+  <div class="content-section">
+    <p>Current Picks For Today:</p>
+    <p>{{ todaysPicks }}</p>
   </div>
-</form>
+  {% endif %}
+
+  <div id="myModal" class="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            <p>You already made picks for today, would you like to overwrite your picks?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="overWritePicks" class="btn btn-primary">Overwrite</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </div>
+
+
 {% endblock content %}
