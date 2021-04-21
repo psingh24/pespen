@@ -1,0 +1,104 @@
+Description: CloudFormation template for practice
+Parameters:
+  LatestAmiId:
+    Description: AMI
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: myVPC1
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+  VPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  subnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.0.0/17
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: webSubnet
+      VpcId: !Ref VPC
+  subnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 10.0.128.0/17
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: private
+      VpcId: !Ref VPC
+  RouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+  InternetRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: InternetGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+  Subnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref subnet1
+  TestSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: NGINX Server
+      GroupDescription: Traffic from all to NGINX Server
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+  myENI:
+    Type: 'AWS::EC2::NetworkInterface'
+    Properties:
+      Tags:
+        - Key: name
+          Value: ENI
+      Description: ENI
+      SourceDestCheck: 'false'
+      GroupSet:
+        - !Ref TestSecurityGroup
+      SubnetId: !Ref subnet1
+  firstEC2instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      AvailabilityZone: us-east-1a
+      ImageId: !Ref LatestAmiId
+      InstanceType: t2.micro
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -ex
+            sudo amazon-linux-extras install nginx1 -y
+            sudo service nginx start
+      Tags:
+        - Key: Name
+          Value: serverEC2
+      NetworkInterfaces:
+        - NetworkInterfaceId:
+            Ref: myENI
+          DeviceIndex: '0'
